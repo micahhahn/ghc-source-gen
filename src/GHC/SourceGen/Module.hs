@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
 -- Copyright 2019 Google LLC
 --
 -- Use of this source code is governed by a BSD-style
@@ -12,6 +13,8 @@ module GHC.SourceGen.Module
       HsModule'
     , module'
     , withModuleHaddock
+    , withModuleWarning
+    , Warning(..)
       -- * Import declarations
     , ImportDecl'
     , qualified'
@@ -42,6 +45,7 @@ import GHC.SourceGen.Name
 import GHC.SourceGen.Name.Internal
 import GHC.SourceGen.Lit.Internal (noSourceText)
 import GHC.Hs.Doc
+import BasicTypes
 
 module'
     :: Maybe ModuleNameStr
@@ -60,6 +64,15 @@ module' name exports imports decls = HsModule
 
 withModuleHaddock :: Maybe String -> HsModule' -> HsModule'
 withModuleHaddock s m = m { hsmodHaddockModHeader = fmap (builtLoc . mkHsDocString) s }
+
+withModuleWarning :: Maybe Warning -> HsModule' -> HsModule'
+withModuleWarning w m = m { hsmodDeprecMessage = fmap (builtLoc . message) w }
+    where message = \case
+            Warning s -> WarningTxt (builtLoc (SourceText s)) []
+            Deprecated s -> DeprecatedTxt (builtLoc (SourceText s)) []
+
+data Warning = Warning String
+             | Deprecated String
 
 qualified' :: ImportDecl' -> ImportDecl'
 qualified' d = d { ideclQualified =
