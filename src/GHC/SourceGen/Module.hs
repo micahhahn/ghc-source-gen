@@ -14,6 +14,7 @@ module GHC.SourceGen.Module
     , module'
     , withModuleHaddock
     , withModuleWarning
+    , withModuleDeprecated
     , Warning(..)
       -- * Import declarations
     , ImportDecl'
@@ -66,11 +67,18 @@ module' name exports imports decls = HsModule
 withModuleHaddock :: Maybe String -> HsModule' -> HsModule'
 withModuleHaddock s m = m { hsmodHaddockModHeader = fmap (builtLoc . mkHsDocString) s }
 
-withModuleWarning :: Maybe Warning -> HsModule' -> HsModule'
-withModuleWarning w m = m { hsmodDeprecMessage = fmap (builtLoc . message) w }
-    where message = \case
-            Warning s -> WarningTxt (builtLoc NoSourceText) [builtLoc (StringLiteral (SourceText s) (fsLit s) )]
-            Deprecated s -> DeprecatedTxt (builtLoc NoSourceText) [builtLoc (StringLiteral (SourceText s) (fsLit s) )]
+withModuleWarning :: Maybe String -> HsModule' -> HsModule'
+withModuleWarning Nothing m = m
+withModuleWarning (Just message) m = m { hsmodDeprecMessage = Just depMessage }
+    where text = "{-# WARNING \"" ++ message ++ "\" #-}"
+          depMessage = builtLoc $ DeprecatedTxt (builtLoc NoSourceText) [builtLoc (StringLiteral (SourceText text) (fsLit text) )]
+
+withModuleDeprecated :: Maybe String -> HsModule' -> HsModule'
+withModuleDeprecated Nothing m = m
+withModuleDeprecated (Just message) m = m { hsmodDeprecMessage = Just depMessage }
+    where text = "{-# DEPRECATED \"" ++ message ++ "\" #-}"
+          depMessage = builtLoc $ DeprecatedTxt (builtLoc NoSourceText) [builtLoc (StringLiteral (SourceText text) (fsLit text) )]
+          
 
 data Warning = Warning String
              | Deprecated String
