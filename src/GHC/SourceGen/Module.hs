@@ -11,6 +11,7 @@ module GHC.SourceGen.Module
     ( -- * HsModule'
       HsModule'
     , module'
+    , withModuleHaddock
       -- * Import declarations
     , ImportDecl'
     , qualified'
@@ -40,6 +41,7 @@ import GHC.SourceGen.Syntax.Internal
 import GHC.SourceGen.Name
 import GHC.SourceGen.Name.Internal
 import GHC.SourceGen.Lit.Internal (noSourceText)
+import GHC.Hs.Doc
 
 module'
     :: Maybe ModuleNameStr
@@ -55,6 +57,9 @@ module' name exports imports decls = HsModule
     , hsmodDeprecMessage = Nothing
     , hsmodHaddockModHeader = Nothing
     }
+
+withModuleHaddock :: Maybe String -> HsModule' -> HsModule'
+withModuleHaddock s m = m { hsmodHaddockModHeader = fmap (builtLoc . mkHsDocString) s }
 
 qualified' :: ImportDecl' -> ImportDecl'
 qualified' d = d { ideclQualified =
