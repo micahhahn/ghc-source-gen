@@ -46,6 +46,7 @@ import GHC.SourceGen.Name.Internal
 import GHC.SourceGen.Lit.Internal (noSourceText)
 import GHC.Hs.Doc
 import BasicTypes
+import FastString
 
 module'
     :: Maybe ModuleNameStr
@@ -68,8 +69,8 @@ withModuleHaddock s m = m { hsmodHaddockModHeader = fmap (builtLoc . mkHsDocStri
 withModuleWarning :: Maybe Warning -> HsModule' -> HsModule'
 withModuleWarning w m = m { hsmodDeprecMessage = fmap (builtLoc . message) w }
     where message = \case
-            Warning s -> WarningTxt (builtLoc (SourceText s)) []
-            Deprecated s -> DeprecatedTxt (builtLoc (SourceText s)) []
+            Warning s -> WarningTxt (builtLoc NoSourceText) [builtLoc (StringLiteral (SourceText s) (fsLit s) )]
+            Deprecated s -> DeprecatedTxt (builtLoc NoSourceText) [builtLoc (StringLiteral (SourceText s) (fsLit s) )]
 
 data Warning = Warning String
              | Deprecated String
