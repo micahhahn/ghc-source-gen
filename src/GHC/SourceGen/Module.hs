@@ -78,10 +78,6 @@ withModuleDeprecated Nothing m = m
 withModuleDeprecated (Just message) m = m { hsmodDeprecMessage = Just depMessage }
     where text = "{-# DEPRECATED \"" ++ message ++ "\" #-}"
           depMessage = builtLoc $ DeprecatedTxt (builtLoc NoSourceText) [builtLoc (StringLiteral (SourceText text) (fsLit text) )]
-          
-
-data Warning = Warning String
-             | Deprecated String
 
 qualified' :: ImportDecl' -> ImportDecl'
 qualified' d = d { ideclQualified =
